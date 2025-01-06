@@ -1,102 +1,38 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocuFlow - เว็บออกแบบบทสารคดี</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <header>
-            <h1>DocuFlow</h1>
-            <p>เว็บแอปพลิเคชันสำหรับออกแบบและเขียนบทสารคดี</p>
-        </header>
+<!-- Organizations Tab -->
+<section id="organizations" class="tab-content">
+    <h2>องค์กร</h2>
+    <div class="organizations-actions">
+        <button class="primary-btn" onclick="openCreateProjectModal()">สร้างโครงการใหม่</button>
+    </div>
+    <div id="projectList" class="project-list"></div>
+</section>
 
-        <!-- Navigation Tabs -->
-        <nav class="tabs">
-            <button onclick="showTab('dashboard')">แดชบอร์ด</button>
-            <button onclick="showTab('timeline')">ไทม์ไลน์</button>
-            <button onclick="showTab('script')">เขียนบท</button>
-            <button onclick="showTab('media')">คลังสื่อ</button>
-            <button onclick="showTab('team')">ทีมงาน</button>
-            <button onclick="showTab('organizations')">องค์กร</button>
-        </nav>
-
-        <!-- Dashboard Tab -->
-        <section id="dashboard" class="tab-content active">
-            <!-- เนื้อหา Dashboard ที่มีอยู่ -->
-        </section>
-
-        <!-- Timeline Tab -->
-        <section id="timeline" class="tab-content">
-            <!-- เนื้อหา Timeline ที่มีอยู่ -->
-        </section>
-
-        <!-- Script Editor Tab -->
-        <section id="script" class="tab-content">
-            <!-- เนื้อหา Script Editor ที่มีอยู่ -->
-        </section>
-
-        <!-- Media Library Tab -->
-        <section id="media" class="tab-content">
-            <!-- เนื้อหา Media Library ที่มีอยู่ -->
-        </section>
-
-        <!-- Team Collaboration Tab -->
-        <section id="team" class="tab-content">
-            <!-- เนื้อหา Team Collaboration ที่มีอยู่ -->
-        </section>
-
-        <!-- Organizations Tab -->
-        <section id="organizations" class="tab-content">
-            <h2>องค์กร</h2>
-            <div class="organizations-actions">
-                <button class="primary-btn" onclick="openCreateProjectModal()">สร้างโครงการใหม่</button>
+<!-- Modal สำหรับสร้าง/แก้ไขโครงการ -->
+<div id="projectModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeProjectModal()">&times;</span>
+        <h2 id="modalTitle">สร้างโครงการใหม่</h2>
+        <form id="projectForm">
+            <div class="form-group">
+                <label for="projectName">ชื่อโครงการ</label>
+                <input type="text" id="projectName" required>
             </div>
-            <div id="projectList" class="project-list"></div>
-        </section>
+            <div class="form-group">
+                <label for="projectDescription">คำอธิบาย</label>
+                <textarea id="projectDescription" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="projectStartDate">วันที่เริ่มต้น</label>
+                <input type="date" id="projectStartDate" required>
+            </div>
+            <div class="form-group">
+                <label for="projectEndDate">วันที่สิ้นสุด</label>
+                <input type="date" id="projectEndDate" required>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="primary-btn">บันทึก</button>
+                <button type="button" class="cancel-btn" onclick="closeProjectModal()">ยกเลิก</button>
+            </div>
+        </form>
     </div>
-
-    <!-- Modal สำหรับสร้าง/แก้ไขโครงการ -->
-    <div id="projectModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeProjectModal()">&times;</span>
-            <h2 id="modalTitle">สร้างโครงการใหม่</h2>
-            <form id="projectForm">
-                <div class="form-group">
-                    <label for="projectName">ชื่อโครงการ</label>
-                    <input type="text" id="projectName" required>
-                </div>
-                <div class="form-group">
-                    <label for="projectDescription">คำอธิบาย</label>
-                    <textarea id="projectDescription" rows="4" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="projectStartDate">วันที่เริ่มต้น</label>
-                    <input type="date" id="projectStartDate" required>
-                </div>
-                <div class="form-group">
-                    <label for="projectEndDate">วันที่สิ้นสุด</label>
-                    <input type="date" id="projectEndDate" required>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="primary-btn">บันทึก</button>
-                    <button type="button" class="cancel-btn" onclick="closeProjectModal()">ยกเลิก</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer>
-        <p>© 2023 DocuFlow. พัฒนาโดยทีม 1O1</p>
-    </footer>
-
-    <!-- เชื่อมโยงไฟล์ JavaScript -->
-    <script src="scripts/main.js"></script>
-</body>
-</html>
+</div>
