@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แดชบอร์ด - Collab Script</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .dashboard-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+        .dashboard-container h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .dashboard-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .dashboard-container button:hover {
+            background-color: #1e88e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>แดชบอร์ด</h1>
+        <p>นี่คือหน้าแดชบอร์ดที่ต้องล็อกอินเพื่อเข้าถึง</p>
+        <button onclick="logout()">ออกจากระบบ</button>
+    </div>
+
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5c5nHaw6s1X1quiybFD_zq7vB4tIfIVQ",
+            authDomain: "eventcost-pro.firebaseapp.com",
+            databaseURL: "https://eventcost-pro-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "eventcost-pro",
+            storageBucket: "eventcost-pro.firebasestorage.app",
+            messagingSenderId: "114353067568",
+            appId: "1:114353067568:web:1b444a5cb44d0f73e8bff5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // ตรวจสอบสถานะการล็อกอิน
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                // ผู้ใช้ยังไม่ล็อกอิน
+                window.location.href = 'login.html'; // เปลี่ยนเส้นทางไปยังหน้า Login
+            }
+        });
+
+        // ฟังก์ชันสำหรับออกจากระบบ
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = 'index.html'; // เปลี่ยนเส้นทางไปยังหน้าแรก
+            });
+        }
+    </script>
+</body>
+</html>
