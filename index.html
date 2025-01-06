@@ -1,38 +1,779 @@
-<!-- Organizations Tab -->
-<section id="organizations" class="tab-content">
-    <h2>องค์กร</h2>
-    <div class="organizations-actions">
-        <button class="primary-btn" onclick="openCreateProjectModal()">สร้างโครงการใหม่</button>
-    </div>
-    <div id="projectList" class="project-list"></div>
-</section>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collab Script - เว็บออกแบบบทสารคดี</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<!-- Modal สำหรับสร้าง/แก้ไขโครงการ -->
-<div id="projectModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeProjectModal()">&times;</span>
-        <h2 id="modalTitle">สร้างโครงการใหม่</h2>
-        <form id="projectForm">
-            <div class="form-group">
-                <label for="projectName">ชื่อโครงการ</label>
-                <input type="text" id="projectName" required>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tabs button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #f0f0f0;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .tabs button:hover {
+            background: #ddd;
+        }
+
+        .tabs button.active {
+            background: #2196F3;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .card p {
+            font-size: 1em;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar div {
+            height: 100%;
+            background: #2196F3;
+            border-radius: 5px;
+        }
+
+        /* Timeline */
+        .timeline {
+            margin-top: 30px;
+        }
+
+        .timeline h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        .timeline-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .step {
+            flex: 1 1 200px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .step.completed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .step.in-progress {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .step.pending {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Script Editor */
+        .script-editor {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+        }
+
+        .item {
+            padding: 20px;
+            margin: 15px 0;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .item:active {
+            cursor: grabbing;
+        }
+
+        .item.dragging {
+            opacity: 0.5;
+            background: #e3f2fd;
+        }
+
+        .item.drag-over {
+            border: 2px dashed #4CAF50;
+            margin-top: 20px;
+        }
+
+        .item-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 6px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s, transform 0.2s;
+            background: none;
+            color: #666;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+        }
+
+        .primary-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .edit-btn {
+            font-size: 14px;
+        }
+
+        .delete-btn {
+            font-size: 12px;
+        }
+
+        .cancel-btn {
+            background: #9e9e9e;
+            color: white;
+        }
+
+        .status {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+        }
+
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: #777;
+            margin-top: 8px;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            padding: 0 12px;
+            color: #666;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .item-content {
+            flex-grow: 1;
+            margin: 0 15px;
+        }
+
+        .edit-form {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .item[data-type="บทบรรยาย"] {
+            background-color: #e3f2fd;
+        }
+
+        .item[data-type="บทสัมภาษณ์"] {
+            background-color: #e8f5e9;
+        }
+
+        .item[data-type="คำบรรยายเพิ่มเติม"] {
+            background-color: #fff3e0;
+        }
+
+        .item-content .type-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #444;
+            color: white;
+            border-radius: 8px;
+        }
+
+        footer p {
+            font-size: 0.9em;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .step {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>Collab Script</h1>
+            <p>เว็บแอปพลิเคชันสำหรับออกแบบและเขียนบทสารคดี</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button onclick="showTab('dashboard')">ภาพรวม</button>
+            <button onclick="showTab('script')">บท</button>
+            <button onclick="showTab('timeline')">ไทม์ไลน์</button>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <section id="dashboard" class="tab-content active">
+            <div class="dashboard">
+                <div class="card">
+                    <h2>โครงการทั้งหมด</h2>
+                    <p>จำนวนโครงการ: 3</p>
+                </div>
+                <div class="card">
+                    <h2>ความคืบหน้า</h2>
+                    <div class="progress-bar">
+                        <div style="width: 75%;"></div>
+                    </div>
+                    <p>75% เสร็จสมบูรณ์</p>
+                </div>
+                <div class="card">
+                    <h2>แจ้งเตือนล่าสุด</h2>
+                    <p>มีการแก้ไขบทใน "พลังแห่งความร่วมมือ"</p>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="projectDescription">คำอธิบาย</label>
-                <textarea id="projectDescription" rows="4" required></textarea>
+        </section>
+
+        <!-- Script Editor Tab -->
+        <section id="script" class="tab-content">
+            <div class="script-editor">
+                <h2>เขียนบทสารคดี</h2>
+                <div id="status" class="status"></div>
+                <div class="form-group">
+                    <select id="typeSelect">
+                        <option value="" disabled selected>เลือกประเภทข้อมูล</option>
+                        <option value="บทบรรยาย">บทบรรยาย</option>
+                        <option value="บทสัมภาษณ์">บทสัมภาษณ์</option>
+                        <option value="คำบรรยายเพิ่มเติม">คำบรรยายเพิ่มเติม</option>
+                    </select>
+                    <input type="text" id="inputData" placeholder="กรอกข้อความที่ต้องการบันทึก" autocomplete="off">
+                    <div style="margin-top: 15px;">
+                        <button class="primary-btn" onclick="writeData()">บันทึกข้อมูล</button>
+                    </div>
+                </div>
+                <div id="dataList"></div>
             </div>
-            <div class="form-group">
-                <label for="projectStartDate">วันที่เริ่มต้น</label>
-                <input type="date" id="projectStartDate" required>
+        </section>
+
+        <!-- Timeline Tab -->
+        <section id="timeline" class="tab-content">
+            <div class="timeline">
+                <h2>ไทม์ไลน์โครงการ</h2>
+                <div class="timeline-steps">
+                    <div class="step completed">สำรวจพื้นที่</div>
+                    <div class="step in-progress">ออกแบบบท</div>
+                    <div class="step pending">ถ่ายทำ</div>
+                    <div class="step pending">ตัดต่อ</div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="projectEndDate">วันที่สิ้นสุด</label>
-                <input type="date" id="projectEndDate" required>
-            </div>
-            <div class="button-group">
-                <button type="submit" class="primary-btn">บันทึก</button>
-                <button type="button" class="cancel-btn" onclick="closeProjectModal()">ยกเลิก</button>
-            </div>
-        </form>
+        </section>
     </div>
-</div>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2023 Collab Script. พัฒนาโดยทีม 1O1</p>
+    </footer>
+
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5c5nHaw6s1X1quiybFD_zq7vB4tIfIVQ",
+            authDomain: "eventcost-pro.firebaseapp.com",
+            databaseURL: "https://eventcost-pro-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "eventcost-pro",
+            storageBucket: "eventcost-pro.firebasestorage.app",
+            messagingSenderId: "114353067568",
+            appId: "1:114353067568:web:1b444a5cb44d0f73e8bff5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let draggedItem = null;
+
+        // ฟังก์ชันตรวจสอบ PIN
+        const PIN_ADD_EDIT_MOVE = "0000";
+        const PIN_DELETE = "8888";
+        const PIN_EXPIRY_HOURS = 6;
+
+        function getStoredPinTimestamp() {
+            return localStorage.getItem('pinTimestamp');
+        }
+
+        function setStoredPinTimestamp() {
+            const now = new Date().getTime();
+            localStorage.setItem('pinTimestamp', now);
+        }
+
+        function isPinValid() {
+            const storedTimestamp = getStoredPinTimestamp();
+            if (!storedTimestamp) return false;
+            const now = new Date().getTime();
+            const expiryTime = parseInt(storedTimestamp) + (PIN_EXPIRY_HOURS * 60 * 60 * 1000);
+            return now < expiryTime;
+        }
+
+        function promptPin(action, callback) {
+            if (isPinValid()) {
+                callback();
+                return;
+            }
+
+            const requiredPin = action === 'delete' ? PIN_DELETE : PIN_ADD_EDIT_MOVE;
+            const pin = prompt(`กรุณาป้อน PIN เพื่อ${action === 'delete' ? 'ลบ' : 'ดำเนินการ'}:`);
+            if (pin === requiredPin) {
+                setStoredPinTimestamp();
+                callback();
+            } else {
+                alert('ท่านไม่มีสิทธิ์');
+            }
+        }
+
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.style.display = 'block';
+            status.className = 'status ' + (isError ? 'error' : 'success');
+            setTimeout(() => status.style.display = 'none', 3000);
+        }
+
+        async function writeData() {
+            const typeSelect = document.getElementById('typeSelect');
+            const selectedType = typeSelect.value;
+            const input = document.getElementById('inputData');
+            const text = input.value.trim();
+            
+            if (!selectedType) {
+                showStatus('กรุณาเลือกประเภทข้อมูล', true);
+                return;
+            }
+            if (!text) {
+                showStatus('กรุณากรอกข้อความ', true);
+                return;
+            }
+
+            promptPin('add', async () => {
+                try {
+                    const snapshot = await database.ref('items').once('value');
+                    const items = snapshot.val() || {};
+                    const maxOrder = Object.values(items).reduce((max, item) => 
+                        Math.max(max, item.order || 0), 0);
+
+                    const newDataRef = database.ref('items').push();
+                    await newDataRef.set({
+                        type: selectedType,
+                        text: text,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        order: maxOrder + 1000
+                    });
+
+                    showStatus('บันทึกข้อมูลสำเร็จ');
+                    typeSelect.value = '';
+                    input.value = '';
+                    input.focus();
+                    displayData(); // เรียก displayData เพื่อแสดงข้อมูลใหม่ทันที
+                } catch (error) {
+                    showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
+                }
+            });
+        }
+
+        function startEdit(id, currentText, currentType) {
+            promptPin('edit', () => {
+                const itemDiv = document.getElementById(`item-${id}`);
+                const contentDiv = itemDiv.querySelector('.item-content');
+                contentDiv.innerHTML = `
+                    <div class="edit-form">
+                        <select id="edit-type-${id}">
+                            <option value="บทบรรยาย" ${currentType === 'บทบรรยาย' ? 'selected' : ''}>บทบรรยาย</option>
+                            <option value="บทสัมภาษณ์" ${currentType === 'บทสัมภาษณ์' ? 'selected' : ''}>บทสัมภาษณ์</option>
+                            <option value="คำบรรยายเพิ่มเติม" ${currentType === 'คำบรรยายเพิ่มเติม' ? 'selected' : ''}>คำบรรยายเพิ่มเติม</option>
+                        </select>
+                        <input type="text" id="edit-${id}" value="${currentText}" class="edit-input">
+                        <div class="button-group">
+                            <button class="edit-btn" onclick="saveEdit('${id}')">✏️</button>
+                            <button class="cancel-btn" onclick="displayData()">ยกเลิก</button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById(`edit-${id}`).focus();
+            });
+        }
+
+        async function saveEdit(id) {
+            const editType = document.getElementById(`edit-type-${id}`).value;
+            const editInput = document.getElementById(`edit-${id}`);
+            const newText = editInput.value.trim();
+            
+            if (!newText) {
+                showStatus('กรุณากรอกข้อความ', true);
+                return;
+            }
+
+            try {
+                await database.ref(`items/${id}`).update({
+                    type: editType,
+                    text: newText,
+                    editedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+                showStatus('แก้ไขข้อมูลสำเร็จ');
+                displayData(); // เรียก displayData หลังจากแก้ไขข้อมูลเสร็จ
+            } catch (error) {
+                showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
+            }
+        }
+
+        async function deleteData(id) {
+            promptPin('delete', async () => {
+                if (confirm('ต้องการลบข้อมูลนี้ใช่หรือไม่?')) {
+                    try {
+                        await database.ref('items/' + id).remove();
+                        showStatus('ลบข้อมูลสำเร็จ');
+                        displayData(); // เรียก displayData หลังจากลบข้อมูลเสร็จ
+                    } catch (error) {
+                        showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
+                    }
+                }
+            });
+        }
+
+        async function updateOrder(id, newOrder) {
+            try {
+                await database.ref(`items/${id}`).update({
+                    order: newOrder,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+            } catch (error) {
+                showStatus('เกิดข้อผิดพลาดในการอัพเดทลำดับ: ' + error.message, true);
+            }
+        }
+
+        async function moveItem(id, direction) {
+            promptPin('move', async () => {
+                try {
+                    const snapshot = await database.ref('items').orderByChild('order').once('value');
+                    const items = [];
+                    snapshot.forEach(child => {
+                        items.push({ id: child.key, ...child.val() });
+                    });
+                    items.sort((a, b) => a.order - b.order);
+
+                    const currentIndex = items.findIndex(item => item.id === id);
+                    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+                    if (newIndex >= 0 && newIndex < items.length) {
+                        const newOrder = direction === 'up'
+                            ? items[newIndex].order - 1
+                            : items[newIndex].order + 1;
+                        await updateOrder(id, newOrder);
+                        displayData(); // เรียก displayData หลังจากย้ายตำแหน่งเสร็จ
+                    }
+                } catch (error) {
+                    showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
+                }
+            });
+        }
+
+        async function handleDropLogic(draggedId, targetId) {
+            promptPin('move', async () => {
+                try {
+                    const snapshot = await database.ref('items').orderByChild('order').once('value');
+                    const items = [];
+                    snapshot.forEach(child => {
+                        items.push({ id: child.key, ...child.val() });
+                    });
+                    items.sort((a, b) => a.order - b.order);
+
+                    const draggedIndex = items.findIndex(item => item.id === draggedId);
+                    const targetIndex = items.findIndex(item => item.id === targetId);
+
+                    if (draggedIndex !== -1 && targetIndex !== -1) {
+                        const newOrder = targetIndex > draggedIndex
+                            ? items[targetIndex].order + 1
+                            : items[targetIndex].order - 1;
+
+                        await database.ref(`items/${draggedId}`).update({ order: newOrder });
+                        displayData(); // เรียก displayData หลังจากอัปเดตข้อมูลเสร็จ
+                    }
+                } catch (error) {
+                    showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
+                }
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedItem = this;
+            setTimeout(() => this.classList.add('dragging'), 0);
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            draggedItem = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            if (draggedItem !== this) {
+                this.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave() {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetId = this.id.replace('item-', '');
+            if (draggedItem && draggedItem.id !== this.id) {
+                handleDropLogic(draggedItem.id.replace('item-', ''), targetId);
+            }
+            this.classList.remove('drag-over');
+        }
+
+        function displayData() {
+            const dataList = document.getElementById('dataList');
+            dataList.innerHTML = ''; // เคลียร์ข้อมูลเก่าก่อนแสดงใหม่
+            
+            database.ref('items').orderByChild('order').once('value', snapshot => {
+                const items = [];
+                snapshot.forEach(child => {
+                    items.push({ id: child.key, ...child.val() });
+                });
+                
+                items.sort((a, b) => a.order - b.order); // เรียงลำดับตาม order
+                
+                items.forEach((data, index) => {
+                    const div = document.createElement('div');
+                    div.id = `item-${data.id}`;
+                    div.className = 'item';
+                    div.draggable = true;
+                    div.setAttribute('data-type', data.type); // เพิ่ม data-type เพื่อกำหนดสีพื้นหลัง
+                    
+                    const date = new Date(data.timestamp);
+                    let timeText = date.toLocaleString('th-TH');
+                    if (data.editedAt) {
+                        const editDate = new Date(data.editedAt);
+                        timeText += ` (แก้ไขเมื่อ ${editDate.toLocaleString('th-TH')})`;
+                    }
+
+                    div.innerHTML = `
+                        <div class="drag-handle">⋮⋮</div>
+                        <div class="item-content">
+                            <div class="type-label">[ ${data.type} ]</div>
+                            <div style="font-size: 16px;">${data.text}</div>
+                            <div class="timestamp">${timeText}</div>
+                        </div>
+                        <div class="item-buttons">
+                            <button class="edit-btn" onclick="startEdit('${data.id}', '${data.text}', '${data.type}')">✏️</button>
+                            <button class="delete-btn" onclick="deleteData('${data.id}')">✕</button>
+                        </div>
+                    `;
+
+                    // เพิ่ม Event Listener สำหรับ Drag and Drop
+                    div.addEventListener('dragstart', handleDragStart);
+                    div.addEventListener('dragend', handleDragEnd);
+                    div.addEventListener('dragover', handleDragOver);
+                    div.addEventListener('dragleave', handleDragLeave);
+                    div.addEventListener('drop', handleDrop);
+
+                    dataList.appendChild(div);
+                });
+            });
+        }
+
+        // เริ่มแสดงข้อมูลเมื่อโหลดหน้าเว็บ
+        displayData();
+
+        // รับการกด Enter ที่ช่อง input
+        document.getElementById('inputData').addEventListener('keypress', e => {
+            if (e.key === 'Enter') writeData();
+        });
+
+        // ฟังก์ชันสลับ Tab
+        function showTab(tabId) {
+            // ซ่อนทุก Tab
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // แสดง Tab ที่เลือก
+            document.getElementById(tabId).classList.add('active');
+
+            // ตั้งค่า Active State ให้ปุ่ม Tab
+            document.querySelectorAll('.tabs button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.querySelector(`.tabs button[onclick="showTab('${tabId}')"]`).classList.add('active');
+        }
+
+        // แสดง Tab เริ่มต้น (Dashboard)
+        showTab('dashboard');
+    </script>
+</body>
+</html>
