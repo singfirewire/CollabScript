@@ -23,74 +23,72 @@
             <button onclick="showTab('script')">เขียนบท</button>
             <button onclick="showTab('media')">คลังสื่อ</button>
             <button onclick="showTab('team')">ทีมงาน</button>
+            <button onclick="showTab('organizations')">องค์กร</button>
         </nav>
 
         <!-- Dashboard Tab -->
         <section id="dashboard" class="tab-content active">
-            <div class="dashboard">
-                <div class="card">
-                    <h2>โครงการทั้งหมด</h2>
-                    <p>จำนวนโครงการ: 3</p>
-                </div>
-                <div class="card">
-                    <h2>ความคืบหน้า</h2>
-                    <div class="progress-bar">
-                        <div style="width: 75%;"></div>
-                    </div>
-                    <p>75% เสร็จสมบูรณ์</p>
-                </div>
-                <div class="card">
-                    <h2>แจ้งเตือนล่าสุด</h2>
-                    <p>มีการแก้ไขบทใน "พลังแห่งความร่วมมือ"</p>
-                </div>
-            </div>
+            <!-- เนื้อหา Dashboard ที่มีอยู่ -->
         </section>
 
         <!-- Timeline Tab -->
         <section id="timeline" class="tab-content">
-            <div class="timeline">
-                <h2>ไทม์ไลน์โครงการ</h2>
-                <div class="timeline-steps">
-                    <div class="step completed">สำรวจพื้นที่</div>
-                    <div class="step in-progress">ออกแบบบท</div>
-                    <div class="step pending">ถ่ายทำ</div>
-                    <div class="step pending">ตัดต่อ</div>
-                </div>
-            </div>
+            <!-- เนื้อหา Timeline ที่มีอยู่ -->
         </section>
 
         <!-- Script Editor Tab -->
         <section id="script" class="tab-content">
-            <div class="script-editor">
-                <h2>เขียนบทสารคดี</h2>
-                <div id="status" class="status"></div>
-                <div class="form-group">
-                    <select id="typeSelect">
-                        <option value="" disabled selected>เลือกประเภทข้อมูล</option>
-                        <option value="บทบรรยาย">บทบรรยาย</option>
-                        <option value="บทสัมภาษณ์">บทสัมภาษณ์</option>
-                        <option value="คำบรรยายเพิ่มเติม">คำบรรยายเพิ่มเติม</option>
-                    </select>
-                    <input type="text" id="inputData" placeholder="กรอกข้อความที่ต้องการบันทึก" autocomplete="off">
-                    <div style="margin-top: 15px;">
-                        <button class="primary-btn" onclick="writeData()">บันทึกข้อมูล</button>
-                    </div>
-                </div>
-                <div id="dataList"></div>
-            </div>
+            <!-- เนื้อหา Script Editor ที่มีอยู่ -->
         </section>
 
         <!-- Media Library Tab -->
         <section id="media" class="tab-content">
-            <h2>คลังสื่อ</h2>
-            <p>กำลังพัฒนาอยู่...</p>
+            <!-- เนื้อหา Media Library ที่มีอยู่ -->
         </section>
 
         <!-- Team Collaboration Tab -->
         <section id="team" class="tab-content">
-            <h2>ทีมงาน</h2>
-            <p>กำลังพัฒนาอยู่...</p>
+            <!-- เนื้อหา Team Collaboration ที่มีอยู่ -->
         </section>
+
+        <!-- Organizations Tab -->
+        <section id="organizations" class="tab-content">
+            <h2>องค์กร</h2>
+            <div class="organizations-actions">
+                <button class="primary-btn" onclick="openCreateProjectModal()">สร้างโครงการใหม่</button>
+            </div>
+            <div id="projectList" class="project-list"></div>
+        </section>
+    </div>
+
+    <!-- Modal สำหรับสร้าง/แก้ไขโครงการ -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProjectModal()">&times;</span>
+            <h2 id="modalTitle">สร้างโครงการใหม่</h2>
+            <form id="projectForm">
+                <div class="form-group">
+                    <label for="projectName">ชื่อโครงการ</label>
+                    <input type="text" id="projectName" required>
+                </div>
+                <div class="form-group">
+                    <label for="projectDescription">คำอธิบาย</label>
+                    <textarea id="projectDescription" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="projectStartDate">วันที่เริ่มต้น</label>
+                    <input type="date" id="projectStartDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="projectEndDate">วันที่สิ้นสุด</label>
+                    <input type="date" id="projectEndDate" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="primary-btn">บันทึก</button>
+                    <button type="button" class="cancel-btn" onclick="closeProjectModal()">ยกเลิก</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Footer -->
