@@ -12,305 +12,141 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 let draggedItem = null;
+let currentProjectId = null; // เก็บ ID ของโครงการที่กำลังแก้ไข
 
-// ฟังก์ชันตรวจสอบ PIN
-const PIN_ADD_EDIT_MOVE = "0000";
-const PIN_DELETE = "1010";
-const PIN_EXPIRY_HOURS = 6;
+// ฟังก์ชันเปิด Modal สำหรับสร้าง/แก้ไขโครงการ
+function openCreateProjectModal(projectId = null) {
+    const modal = document.getElementById('projectModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const projectForm = document.getElementById('projectForm');
 
-function getStoredPinTimestamp() {
-    return localStorage.getItem('pinTimestamp');
-}
-
-function setStoredPinTimestamp() {
-    const now = new Date().getTime();
-    localStorage.setItem('pinTimestamp', now);
-}
-
-function isPinValid() {
-    const storedTimestamp = getStoredPinTimestamp();
-    if (!storedTimestamp) return false;
-    const now = new Date().getTime();
-    const expiryTime = parseInt(storedTimestamp) + (PIN_EXPIRY_HOURS * 60 * 60 * 1000);
-    return now < expiryTime;
-}
-
-function promptPin(action, callback) {
-    if (isPinValid()) {
-        callback();
-        return;
-    }
-
-    const requiredPin = action === 'delete' ? PIN_DELETE : PIN_ADD_EDIT_MOVE;
-    const pin = prompt(`กรุณาป้อน PIN เพื่อ${action === 'delete' ? 'ลบ' : 'ดำเนินการ'}:`);
-    if (pin === requiredPin) {
-        setStoredPinTimestamp();
-        callback();
+    if (projectId) {
+        // โหมดแก้ไขโครงการ
+        modalTitle.textContent = 'แก้ไขโครงการ';
+        currentProjectId = projectId;
+        loadProjectData(projectId);
     } else {
-        alert('ท่านไม่มีสิทธิ์ โปรดติดต่อเจ้าของโปรเจกต์');
+        // โหมดสร้างโครงการใหม่
+        modalTitle.textContent = 'สร้างโครงการใหม่';
+        currentProjectId = null;
+        projectForm.reset();
     }
+
+    modal.style.display = 'flex';
 }
 
-function showStatus(message, isError = false) {
-    const status = document.getElementById('status');
-    status.textContent = message;
-    status.style.display = 'block';
-    status.className = 'status ' + (isError ? 'error' : 'success');
-    setTimeout(() => status.style.display = 'none', 3000);
+// ฟังก์ชันปิด Modal
+function closeProjectModal() {
+    const modal = document.getElementById('projectModal');
+    modal.style.display = 'none';
 }
 
-async function writeData() {
-    const typeSelect = document.getElementById('typeSelect');
-    const selectedType = typeSelect.value;
-    const input = document.getElementById('inputData');
-    const text = input.value.trim();
-    
-    if (!selectedType) {
-        showStatus('กรุณาเลือกประเภทข้อมูล', true);
-        return;
-    }
-    if (!text) {
-        showStatus('กรุณากรอกข้อความ', true);
-        return;
-    }
-
-    promptPin('add', async () => {
-        try {
-            const snapshot = await database.ref('items').once('value');
-            const items = snapshot.val() || {};
-            const maxOrder = Object.values(items).reduce((max, item) => 
-                Math.max(max, item.order || 0), 0);
-
-            const newDataRef = database.ref('items').push();
-            await newDataRef.set({
-                type: selectedType,
-                text: text,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                order: maxOrder + 1000
-            });
-
-            showStatus('บันทึกข้อมูลสำเร็จ');
-            typeSelect.value = '';
-            input.value = '';
-            input.focus();
-            displayData(); // เรียก displayData เพื่อแสดงข้อมูลใหม่ทันที
-        } catch (error) {
-            showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
+// ฟังก์ชันโหลดข้อมูลโครงการสำหรับแก้ไข
+function loadProjectData(projectId) {
+    database.ref(`projects/${projectId}`).once('value').then(snapshot => {
+        const project = snapshot.val();
+        if (project) {
+            document.getElementById('projectName').value = project.name;
+            document.getElementById('projectDescription').value = project.description;
+            document.getElementById('projectStartDate').value = project.startDate;
+            document.getElementById('projectEndDate').value = project.endDate;
         }
     });
 }
 
-function startEdit(id, currentText, currentType) {
-    promptPin('edit', () => {
-        const itemDiv = document.getElementById(`item-${id}`);
-        const contentDiv = itemDiv.querySelector('.item-content');
-        contentDiv.innerHTML = `
-            <div class="edit-form">
-                <select id="edit-type-${id}">
-                    <option value="บทบรรยาย" ${currentType === 'บทบรรยาย' ? 'selected' : ''}>บทบรรยาย</option>
-                    <option value="บทสัมภาษณ์" ${currentType === 'บทสัมภาษณ์' ? 'selected' : ''}>บทสัมภาษณ์</option>
-                    <option value="คำบรรยายเพิ่มเติม" ${currentType === 'คำบรรยายเพิ่มเติม' ? 'selected' : ''}>คำบรรยายเพิ่มเติม</option>
-                </select>
-                <input type="text" id="edit-${id}" value="${currentText}" class="edit-input">
-                <div class="button-group">
-                    <button class="edit-btn" onclick="saveEdit('${id}')">✏️</button>
-                    <button class="cancel-btn" onclick="displayData()">ยกเลิก</button>
-                </div>
-            </div>
-        `;
-        document.getElementById(`edit-${id}`).focus();
-    });
-}
+// ฟังก์ชันบันทึกโครงการ (สร้างหรือแก้ไข)
+document.getElementById('projectForm').addEventListener('submit', e => {
+    e.preventDefault();
 
-async function saveEdit(id) {
-    const editType = document.getElementById(`edit-type-${id}`).value;
-    const editInput = document.getElementById(`edit-${id}`);
-    const newText = editInput.value.trim();
-    
-    if (!newText) {
-        showStatus('กรุณากรอกข้อความ', true);
+    const projectName = document.getElementById('projectName').value.trim();
+    const projectDescription = document.getElementById('projectDescription').value.trim();
+    const projectStartDate = document.getElementById('projectStartDate').value;
+    const projectEndDate = document.getElementById('projectEndDate').value;
+
+    if (!projectName || !projectDescription || !projectStartDate || !projectEndDate) {
+        alert('กรุณากรอกข้อมูลให้ครบถ้วน');
         return;
     }
 
-    try {
-        await database.ref(`items/${id}`).update({
-            type: editType,
-            text: newText,
-            editedAt: firebase.database.ServerValue.TIMESTAMP
-        });
-        showStatus('แก้ไขข้อมูลสำเร็จ');
-        displayData(); // เรียก displayData หลังจากแก้ไขข้อมูลเสร็จ
-    } catch (error) {
-        showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
-    }
-}
+    const projectData = {
+        name: projectName,
+        description: projectDescription,
+        startDate: projectStartDate,
+        endDate: projectEndDate,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+    };
 
-async function deleteData(id) {
-    promptPin('delete', async () => {
-        if (confirm('ต้องการลบข้อมูลนี้ใช่หรือไม่?')) {
-            try {
-                await database.ref('items/' + id).remove();
-                showStatus('ลบข้อมูลสำเร็จ');
-                displayData(); // เรียก displayData หลังจากลบข้อมูลเสร็จ
-            } catch (error) {
+    if (currentProjectId) {
+        // แก้ไขโครงการ
+        database.ref(`projects/${currentProjectId}`).update(projectData)
+            .then(() => {
+                showStatus('แก้ไขโครงการสำเร็จ');
+                closeProjectModal();
+                displayProjects();
+            })
+            .catch(error => {
                 showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
-            }
-        }
-    });
-}
-
-async function updateOrder(id, newOrder) {
-    try {
-        await database.ref(`items/${id}`).update({
-            order: newOrder,
-            updatedAt: firebase.database.ServerValue.TIMESTAMP
-        });
-    } catch (error) {
-        showStatus('เกิดข้อผิดพลาดในการอัพเดทลำดับ: ' + error.message, true);
-    }
-}
-
-async function moveItem(id, direction) {
-    promptPin('move', async () => {
-        try {
-            const snapshot = await database.ref('items').orderByChild('order').once('value');
-            const items = [];
-            snapshot.forEach(child => {
-                items.push({ id: child.key, ...child.val() });
             });
-            items.sort((a, b) => a.order - b.order);
-
-            const currentIndex = items.findIndex(item => item.id === id);
-            const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-
-            if (newIndex >= 0 && newIndex < items.length) {
-                const newOrder = direction === 'up'
-                    ? items[newIndex].order - 1
-                    : items[newIndex].order + 1;
-                await updateOrder(id, newOrder);
-                displayData(); // เรียก displayData หลังจากย้ายตำแหน่งเสร็จ
-            }
-        } catch (error) {
-            showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
-        }
-    });
-}
-
-async function handleDropLogic(draggedId, targetId) {
-    promptPin('move', async () => {
-        try {
-            const snapshot = await database.ref('items').orderByChild('order').once('value');
-            const items = [];
-            snapshot.forEach(child => {
-                items.push({ id: child.key, ...child.val() });
+    } else {
+        // สร้างโครงการใหม่
+        database.ref('projects').push(projectData)
+            .then(() => {
+                showStatus('สร้างโครงการสำเร็จ');
+                closeProjectModal();
+                displayProjects();
+            })
+            .catch(error => {
+                showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
             });
-            items.sort((a, b) => a.order - b.order);
+    }
+});
 
-            const draggedIndex = items.findIndex(item => item.id === draggedId);
-            const targetIndex = items.findIndex(item => item.id === targetId);
-
-            if (draggedIndex !== -1 && targetIndex !== -1) {
-                const newOrder = targetIndex > draggedIndex
-                    ? items[targetIndex].order + 1
-                    : items[targetIndex].order - 1;
-
-                await database.ref(`items/${draggedId}`).update({ order: newOrder });
-                displayData(); // เรียก displayData หลังจากอัปเดตข้อมูลเสร็จ
-            }
-        } catch (error) {
-            showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
-        }
-    });
-}
-
-function handleDragStart(e) {
-    draggedItem = this;
-    setTimeout(() => this.classList.add('dragging'), 0);
-}
-
-function handleDragEnd() {
-    this.classList.remove('dragging');
-    draggedItem = null;
-}
-
-function handleDragOver(e) {
-    e.preventDefault();
-    if (draggedItem !== this) {
-        this.classList.add('drag-over');
+// ฟังก์ชันลบโครงการ
+function deleteProject(projectId) {
+    if (confirm('ต้องการลบโครงการนี้ใช่หรือไม่?')) {
+        database.ref(`projects/${projectId}`).remove()
+            .then(() => {
+                showStatus('ลบโครงการสำเร็จ');
+                displayProjects();
+            })
+            .catch(error => {
+                showStatus('เกิดข้อผิดพลาด: ' + error.message, true);
+            });
     }
 }
 
-function handleDragLeave() {
-    this.classList.remove('drag-over');
-}
+// ฟังก์ชันแสดงรายการโครงการ
+function displayProjects() {
+    const projectList = document.getElementById('projectList');
+    projectList.innerHTML = '';
 
-function handleDrop(e) {
-    e.preventDefault();
-    const targetId = this.id.replace('item-', '');
-    if (draggedItem && draggedItem.id !== this.id) {
-        handleDropLogic(draggedItem.id.replace('item-', ''), targetId);
-    }
-    this.classList.remove('drag-over');
-}
-
-function displayData() {
-    const dataList = document.getElementById('dataList');
-    dataList.innerHTML = ''; // เคลียร์ข้อมูลเก่าก่อนแสดงใหม่
-    
-    database.ref('items').orderByChild('order').once('value', snapshot => {
-        const items = [];
+    database.ref('projects').once('value').then(snapshot => {
         snapshot.forEach(child => {
-            items.push({ id: child.key, ...child.val() });
-        });
-        
-        items.sort((a, b) => a.order - b.order); // เรียงลำดับตาม order
-        
-        items.forEach((data, index) => {
-            const div = document.createElement('div');
-            div.id = `item-${data.id}`;
-            div.className = 'item';
-            div.draggable = true;
-            div.setAttribute('data-type', data.type); // เพิ่ม data-type เพื่อกำหนดสีพื้นหลัง
-            
-            const date = new Date(data.timestamp);
-            let timeText = date.toLocaleString('th-TH');
-            if (data.editedAt) {
-                const editDate = new Date(data.editedAt);
-                timeText += ` (แก้ไขเมื่อ ${editDate.toLocaleString('th-TH')})`;
-            }
+            const project = child.val();
+            const projectId = child.key;
 
-            div.innerHTML = `
-                <div class="drag-handle">⋮⋮</div>
-                <div class="item-content">
-                    <div class="type-label">[ ${data.type} ]</div>
-                    <div style="font-size: 16px;">${data.text}</div>
-                    <div class="timestamp">${timeText}</div>
+            const projectItem = document.createElement('div');
+            projectItem.className = 'project-item';
+            projectItem.innerHTML = `
+                <div>
+                    <h3>${project.name}</h3>
+                    <p>${project.description}</p>
+                    <p>วันที่เริ่มต้น: ${project.startDate}</p>
+                    <p>วันที่สิ้นสุด: ${project.endDate}</p>
                 </div>
-                <div class="item-buttons">
-                    <button class="edit-btn" onclick="startEdit('${data.id}', '${data.text}', '${data.type}')">✏️</button>
-                    <button class="delete-btn" onclick="deleteData('${data.id}')">✕</button>
+                <div class="actions">
+                    <button class="edit-btn" onclick="openCreateProjectModal('${projectId}')">แก้ไข</button>
+                    <button class="delete-btn" onclick="deleteProject('${projectId}')">ลบ</button>
                 </div>
             `;
 
-            // เพิ่ม Event Listener สำหรับ Drag and Drop
-            div.addEventListener('dragstart', handleDragStart);
-            div.addEventListener('dragend', handleDragEnd);
-            div.addEventListener('dragover', handleDragOver);
-            div.addEventListener('dragleave', handleDragLeave);
-            div.addEventListener('drop', handleDrop);
-
-            dataList.appendChild(div);
+            projectList.appendChild(projectItem);
         });
     });
 }
 
-// เริ่มแสดงข้อมูลเมื่อโหลดหน้าเว็บ
-displayData();
-
-// รับการกด Enter ที่ช่อง input
-document.getElementById('inputData').addEventListener('keypress', e => {
-    if (e.key === 'Enter') writeData();
-});
+// เริ่มแสดงรายการโครงการเมื่อโหลดหน้าเว็บ
+displayProjects();
 
 // ฟังก์ชันสลับ Tab
 function showTab(tabId) {
