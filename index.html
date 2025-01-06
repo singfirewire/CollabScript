@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuFlow - เว็บออกแบบบทสารคดี</title>
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .card p {
+            font-size: 1em;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar div {
+            height: 100%;
+            background: #2196F3;
+            border-radius: 5px;
+        }
+
+        /* Timeline */
+        .timeline {
+            margin-top: 30px;
+        }
+
+        .timeline h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        .timeline-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .step {
+            flex: 1 1 200px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .step.completed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .step.in-progress {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .step.pending {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #444;
+            color: white;
+            border-radius: 8px;
+        }
+
+        footer p {
+            font-size: 0.9em;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .step {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>DocuFlow</h1>
+            <p>เว็บแอปพลิเคชันสำหรับออกแบบและเขียนบทสารคดี</p>
+        </header>
+
+        <!-- Dashboard -->
+        <section class="dashboard">
+            <div class="card">
+                <h2>โครงการทั้งหมด</h2>
+                <p>จำนวนโครงการ: 3</p>
+            </div>
+            <div class="card">
+                <h2>ความคืบหน้า</h2>
+                <div class="progress-bar">
+                    <div style="width: 75%;"></div>
+                </div>
+                <p>75% เสร็จสมบูรณ์</p>
+            </div>
+            <div class="card">
+                <h2>แจ้งเตือนล่าสุด</h2>
+                <p>มีการแก้ไขบทใน "พลังแห่งความร่วมมือ"</p>
+            </div>
+        </section>
+
+        <!-- Timeline -->
+        <section class="timeline">
+            <h2>ไทม์ไลน์โครงการ</h2>
+            <div class="timeline-steps">
+                <div class="step completed">สำรวจพื้นที่</div>
+                <div class="step in-progress">ออกแบบบท</div>
+                <div class="step pending">ถ่ายทำ</div>
+                <div class="step pending">ถอดเทป</div>
+                <div class="step pending">ตัดต่อ</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2023 DocuFlow. พัฒนาโดยทีม 1O1</p>
+    </footer>
+</body>
+</html>
