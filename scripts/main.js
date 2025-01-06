@@ -15,7 +15,7 @@ let draggedItem = null;
 
 // ฟังก์ชันตรวจสอบ PIN
 const PIN_ADD_EDIT_MOVE = "0000";
-const PIN_DELETE = "8888";
+const PIN_DELETE = "1010";
 const PIN_EXPIRY_HOURS = 6;
 
 function getStoredPinTimestamp() {
@@ -47,7 +47,7 @@ function promptPin(action, callback) {
         setStoredPinTimestamp();
         callback();
     } else {
-        alert('ท่านไม่มีสิทธิ์');
+        alert('ท่านไม่มีสิทธิ์ โปรดติดต่อเจ้าของโปรเจกต์');
     }
 }
 
