@@ -1,3 +1,91 @@
+/* Organizations */
+.organizations-actions {
+    margin-bottom: 20px;
+}
+
+.organizations-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    background: #2196F3;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.organizations-actions button:hover {
+    background: #1e88e5;
+    transform: translateY(-2px);
+}
+
+.project-list {
+    display: grid;
+    gap: 15px;
+}
+
+.project-item {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.project-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.project-item h3 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #444;
+}
+
+.project-item p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.project-item .actions {
+    display: flex;
+    gap: 10px;
+}
+
+.project-item .actions button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.project-item .actions button.edit-btn {
+    background: #2196F3;
+    color: white;
+}
+
+.project-item .actions button.edit-btn:hover {
+    background: #1e88e5;
+    transform: scale(1.05);
+}
+
+.project-item .actions button.delete-btn {
+    background: #ff4444;
+    color: white;
+}
+
+.project-item .actions button.delete-btn:hover {
+    background: #cc0000;
+    transform: scale(1.05);
+}
+
 /* Modal */
 .modal {
     display: none;
@@ -108,92 +196,4 @@
 
 .modal-content .button-group button.cancel-btn:hover {
     background: #757575;
-}
-
-/* Organizations */
-.organizations-actions {
-    margin-bottom: 20px;
-}
-
-.organizations-actions button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    background: #2196F3;
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.2s, transform 0.2s;
-}
-
-.organizations-actions button:hover {
-    background: #1e88e5;
-    transform: translateY(-2px);
-}
-
-.project-list {
-    display: grid;
-    gap: 15px;
-}
-
-.project-item {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.project-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.project-item h3 {
-    margin: 0;
-    font-size: 1.2em;
-    color: #444;
-}
-
-.project-item p {
-    margin: 5px 0;
-    color: #666;
-    font-size: 14px;
-}
-
-.project-item .actions {
-    display: flex;
-    gap: 10px;
-}
-
-.project-item .actions button {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.2s, transform 0.2s;
-}
-
-.project-item .actions button.edit-btn {
-    background: #2196F3;
-    color: white;
-}
-
-.project-item .actions button.edit-btn:hover {
-    background: #1e88e5;
-    transform: scale(1.05);
-}
-
-.project-item .actions button.delete-btn {
-    background: #ff4444;
-    color: white;
-}
-
-.project-item .actions button.delete-btn:hover {
-    background: #cc0000;
-    transform: scale(1.05);
 }
